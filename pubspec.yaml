@@ -1,0 +1,99 @@
+name: veloura
+description: A premium privacy-first long-distance couple communication application.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.1.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State Management
+  flutter_riverpod: ^2.4.9
+  riverpod_annotation: ^2.3.3
+
+  # Local Database
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+
+  # Encryption
+  encrypt: ^5.0.3
+  crypto: ^3.0.3
+  pointycastle: ^3.7.4
+
+  # Animations
+  flutter_animate: ^4.5.0
+  lottie: ^3.1.0
+
+  # WebRTC / Communication
+  flutter_webrtc: ^0.10.1
+
+  # UI Components
+  glassmorphism: ^3.0.0
+  blur: ^4.0.0
+  shimmer: ^3.0.0
+
+  # Navigation
+  go_router: ^13.2.0
+
+  # QR Code
+  qr_flutter: ^4.1.0
+  mobile_scanner: ^4.0.0
+
+  # File & Backup
+  archive: ^3.4.10
+  file_picker: ^6.1.1
+  path_provider: ^2.1.2
+  share_plus: ^7.2.2
+
+  # Media
+  just_audio: ^0.9.36
+  record: ^5.0.4
+  image_picker: ^1.0.7
+  cached_network_image: ^3.3.1
+
+  # Utils
+  uuid: ^4.3.3
+  intl: ^0.19.0
+  permission_handler: ^11.3.0
+  local_auth: ^2.1.8
+  connectivity_plus: ^5.0.2
+  battery_plus: ^5.0.3
+  shared_preferences: ^2.2.2
+
+  # Icons & Fonts
+  cupertino_icons: ^1.0.6
+  flutter_svg: ^2.0.10+1
+  google_fonts: ^6.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  hive_generator: ^2.0.1
+  build_runner: ^2.4.8
+  riverpod_generator: ^2.3.9
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/animations/
+    - assets/images/
+    - assets/icons/
+  fonts:
+    - family: Cinzel
+      fonts:
+        - asset: assets/fonts/Cinzel-Regular.ttf
+        - asset: assets/fonts/Cinzel-SemiBold.ttf
+          weight: 600
+    - family: Cormorant
+      fonts:
+        - asset: assets/fonts/Cormorant-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Cormorant-Regular.ttf
+        - asset: assets/fonts/Cormorant-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Cormorant-SemiBold.ttf
+          weight: 600
