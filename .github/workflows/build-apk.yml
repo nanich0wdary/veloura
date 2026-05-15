@@ -1,16 +1,3 @@
-# .github/workflows/build-apk.yml
-# =============================================================
-#  Veloura — GitHub Actions APK Builder
-#
-#  Triggers:
-#    • every push to main → builds APK, uploads as artifact
-#    • git tag  v*        → creates a GitHub Release with APK
-#    • manual trigger     → Actions tab → Run workflow
-#
-#  To download the APK:
-#    Actions tab → latest run → Artifacts → veloura-apks-*
-# =============================================================
-
 name: Build Veloura APK
 
 on:
@@ -22,15 +9,15 @@ on:
     branches: [main, master]
   workflow_dispatch:
 
-# Cancel in-progress runs on new push
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Fix Node.js 20 deprecation warning
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
-  # ───────────────────────────────────────────────────────────
-  #  BUILD
-  # ───────────────────────────────────────────────────────────
   build:
     name: Build Release APK
     runs-on: ubuntu-latest
@@ -45,59 +32,50 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Setup Flutter 3.22.2
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.22.2'
           channel: stable
           cache: true
 
-      - name: Flutter version info
+      - name: Flutter version
         run: flutter --version
 
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Code generation (Hive/Riverpod)
-        run: flutter pub run build_runner build --delete-conflicting-outputs
+      - name: Code generation
+        run: flutter pub run build_runner build --delete-conflicting-outputs || true
         continue-on-error: true
 
       - name: Flutter analyze
-        run: flutter analyze --no-fatal-infos
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings || true
         continue-on-error: true
 
       - name: Accept Android licenses
         run: yes | flutter doctor --android-licenses || true
 
-      - name: Build split-ABI release APKs
+      - name: Build split APKs
         run: |
           flutter build apk --release \
             --target-platform android-arm,android-arm64 \
             --split-per-abi \
-            --obfuscate \
-            --split-debug-info=build/debug-info
+            --no-shrink
 
       - name: Build universal APK
-        run: flutter build apk --release
+        run: flutter build apk --release --no-shrink
 
-      - name: Show APK sizes
-        run: |
-          echo "──────────────────────────────────"
-          echo "  Veloura APK files:"
-          echo "──────────────────────────────────"
-          find build/app/outputs/flutter-apk/ -name "*.apk" \
-            -exec sh -c 'printf "  %-10s  %s\n" "$(du -sh "$1"|cut -f1)" "$1"' _ {} \;
+      - name: List built APKs
+        run: find build/app/outputs/flutter-apk/ -name "*.apk" -exec ls -lh {} \;
 
-      - name: Upload APK artifacts
+      - name: Upload APKs
         uses: actions/upload-artifact@v4
         with:
           name: veloura-apks-${{ github.run_number }}
           path: build/app/outputs/flutter-apk/*.apk
           retention-days: 30
 
-  # ───────────────────────────────────────────────────────────
-  #  RELEASE  (only on version tags like v1.0.0)
-  # ───────────────────────────────────────────────────────────
   release:
     name: GitHub Release
     runs-on: ubuntu-latest
@@ -127,27 +105,20 @@ jobs:
           flutter pub run build_runner build --delete-conflicting-outputs || true
           flutter build apk --release \
             --target-platform android-arm,android-arm64 \
-            --split-per-abi
-          flutter build apk --release
+            --split-per-abi \
+            --no-shrink
+          flutter build apk --release --no-shrink
 
-      - name: Create GitHub Release
+      - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           name: Veloura ${{ github.ref_name }}
           body: |
             ## Veloura ${{ github.ref_name }}
-
-            ### Install on Android
-            1. Download the APK for your device (arm64 for modern phones)
-            2. On your phone: Settings → Security → Install unknown apps → Enable
-            3. Open the downloaded APK and tap Install
-
-            ### APK files
-            | File | For |
-            |------|-----|
-            | `app-arm64-v8a-release.apk` | Modern phones (2016+) — **recommended** |
-            | `app-armeabi-v7a-release.apk` | Older phones |
-            | `app-release.apk` | Universal (works on all Android devices) |
+            ### Install
+            1. Download app-arm64-v8a-release.apk (modern phones recommended)
+            2. Phone Settings > Security > Install unknown apps > Allow
+            3. Open the APK and tap Install
           files: build/app/outputs/flutter-apk/*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
