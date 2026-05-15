@@ -11,7 +11,6 @@ import 'routes/app_router.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ── System UI configuration ──
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -23,9 +22,7 @@ Future<void> main() async {
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
-  // ── Initialize Hive (local encrypted database) ──
   await Hive.initFlutter();
-  // Register adapters in Phase 2 (message, mood, memory models)
 
   runApp(
     const ProviderScope(
@@ -46,8 +43,9 @@ class VelouraApp extends ConsumerWidget {
       routerConfig: appRouter,
       builder: (context, child) {
         return MediaQuery(
-          // Enforce readable text scale
-          data: MediaQuery.of(context).copyWith(textScaler: const TextScaler.linear(1.0)),
+          data: MediaQuery.of(context).copyWith(
+            textScaler: const TextScaler.linear(1.0),
+          ),
           child: child!,
         );
       },
