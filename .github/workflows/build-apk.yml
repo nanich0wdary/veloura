@@ -16,12 +16,11 @@ name: Build Veloura APK
 on:
   push:
     branches: [main, master]
+    tags:
+      - 'v*'
   pull_request:
     branches: [main, master]
   workflow_dispatch:
-  push:
-    tags:
-      - 'v*'
 
 # Cancel in-progress runs on new push
 concurrency:
