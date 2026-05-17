@@ -12,14 +12,29 @@ import 'features/pairing/screens/pairing_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // ✅ CRITICAL: Prevents crash on Android 15/16
+  // Google Fonts tries to download fonts at runtime — fails on newer Android
+  GoogleFonts.config.allowRuntimeFetching = false;
+
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.light,
     systemNavigationBarColor: Colors.transparent,
   ));
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+
+  try {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  } catch (_) {}
+
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-  await Hive.initFlutter();
+
+  try {
+    await Hive.initFlutter();
+  } catch (e) {
+    debugPrint('Hive init: $e');
+  }
+
   runApp(const ProviderScope(child: VelouraApp()));
 }
 
@@ -43,7 +58,7 @@ class VelouraApp extends ConsumerWidget {
   }
 }
 
-// ── Splash entry — shows splash then transitions to home ─────
+// ── Splash → Home transition ─────────────────────────────────
 
 class SplashEntry extends StatefulWidget {
   const SplashEntry({super.key});
@@ -57,9 +72,7 @@ class _SplashEntryState extends State<SplashEntry> {
 
   @override
   Widget build(BuildContext context) {
-    if (_showHome) {
-      return const HomeScreen();
-    }
+    if (_showHome) return const HomeScreen();
     return SplashScreen(
       onComplete: () => setState(() => _showHome = true),
     );
@@ -126,52 +139,29 @@ class _HomeScreenState extends State<HomeScreen>
             child: Column(
               children: [
                 const SizedBox(height: 20),
-
-                // Header
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('VELOURA',
-                        style: GoogleFonts.cinzel(
-                            fontSize: 14,
-                            color: const Color(0xFFC084FC),
-                            letterSpacing: 4)),
-                    _ConnectedPill(),
-                  ],
-                ),
-
+                _Header(),
                 const SizedBox(height: 28),
-
-                // Aura ring
                 _AuraRing(controller: _aura)
                     .animate()
                     .fadeIn(duration: 800.ms)
-                    .scale(begin: const Offset(0.7, 0.7),
-                        duration: 1000.ms, curve: Curves.elasticOut),
-
+                    .scale(
+                        begin: const Offset(0.7, 0.7),
+                        duration: 1000.ms,
+                        curve: Curves.elasticOut),
                 const SizedBox(height: 22),
-
-                // Partner card
                 _PartnerCard()
                     .animate()
                     .fadeIn(delay: 200.ms, duration: 600.ms)
                     .slideY(begin: 0.08, end: 0, delay: 200.ms),
-
                 const SizedBox(height: 16),
-
-                // Feature grid
                 _FeatureGrid(onNavigate: _push)
                     .animate()
                     .fadeIn(delay: 350.ms, duration: 600.ms)
                     .slideY(begin: 0.08, end: 0, delay: 350.ms),
-
                 const SizedBox(height: 16),
-
-                // Emotion row
                 _EmotionRow()
                     .animate()
                     .fadeIn(delay: 500.ms, duration: 600.ms),
-
                 const SizedBox(height: 32),
               ],
             ),
@@ -191,28 +181,48 @@ class _HomeScreenState extends State<HomeScreen>
   }
 }
 
-class _ConnectedPill extends StatelessWidget {
+// ── Header ────────────────────────────────────────────────────
+
+class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.06),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.white.withOpacity(0.1), width: 0.5),
-      ),
-      child: Row(children: [
-        Container(width: 6, height: 6,
-            decoration: const BoxDecoration(
-                shape: BoxShape.circle, color: Color(0xFF34D399))),
-        const SizedBox(width: 5),
-        Text('connected',
-            style: GoogleFonts.cinzel(
-                fontSize: 9, color: Colors.white38, letterSpacing: 1)),
-      ]),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          'VELOURA',
+          style: GoogleFonts.cinzel(
+            fontSize: 14,
+            color: const Color(0xFFC084FC),
+            letterSpacing: 4,
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.06),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+                color: Colors.white.withOpacity(0.1), width: 0.5),
+          ),
+          child: Row(children: [
+            Container(
+              width: 6, height: 6,
+              decoration: const BoxDecoration(
+                  shape: BoxShape.circle, color: Color(0xFF34D399)),
+            ),
+            const SizedBox(width: 5),
+            Text('connected',
+                style: GoogleFonts.cinzel(
+                    fontSize: 9, color: Colors.white38, letterSpacing: 1)),
+          ]),
+        ),
+      ],
     );
   }
 }
+
+// ── Aura Ring ─────────────────────────────────────────────────
 
 class _AuraRing extends StatelessWidget {
   const _AuraRing({required this.controller});
@@ -230,8 +240,10 @@ class _AuraRing extends StatelessWidget {
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFC084FC).withOpacity(0.2 + glow * 0.3),
-                blurRadius: 30 + glow * 20, spreadRadius: 2 + glow * 4,
+                color: const Color(0xFFC084FC)
+                    .withOpacity(0.2 + glow * 0.3),
+                blurRadius: 30 + glow * 20,
+                spreadRadius: 2 + glow * 4,
               ),
             ],
           ),
@@ -259,6 +271,8 @@ class _AuraRing extends StatelessWidget {
   }
 }
 
+// ── Partner Card ──────────────────────────────────────────────
+
 class _PartnerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -268,9 +282,13 @@ class _PartnerCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: Colors.white.withOpacity(0.1), width: 0.5),
-        boxShadow: [BoxShadow(
-            color: const Color(0xFFC084FC).withOpacity(0.07), blurRadius: 20)],
+        border: Border.all(
+            color: Colors.white.withOpacity(0.1), width: 0.5),
+        boxShadow: [
+          BoxShadow(
+              color: const Color(0xFFC084FC).withOpacity(0.07),
+              blurRadius: 20)
+        ],
       ),
       child: Row(children: [
         Container(
@@ -279,46 +297,56 @@ class _PartnerCard extends StatelessWidget {
             shape: BoxShape.circle,
             gradient: const LinearGradient(
                 colors: [Color(0xFFC084FC), Color(0xFFF472B6)]),
-            boxShadow: [BoxShadow(
-                color: const Color(0xFFC084FC).withOpacity(0.35),
-                blurRadius: 12)],
+            boxShadow: [
+              BoxShadow(
+                  color: const Color(0xFFC084FC).withOpacity(0.35),
+                  blurRadius: 12)
+            ],
           ),
           child: const Center(
             child: Text('A',
-                style: TextStyle(fontFamily: 'Cinzel',
-                    fontSize: 20, color: Colors.white)),
+                style: TextStyle(
+                    fontFamily: 'Cinzel', fontSize: 20,
+                    color: Colors.white)),
           ),
         ),
         const SizedBox(width: 14),
-        Expanded(child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Ariana',
-                style: GoogleFonts.cormorantGaramond(
-                    fontSize: 20, fontWeight: FontWeight.w500,
-                    color: Colors.white)),
-            const SizedBox(height: 3),
-            Row(children: [
-              Container(width: 6, height: 6,
-                  decoration: const BoxDecoration(
-                      shape: BoxShape.circle, color: Color(0xFF34D399))),
-              const SizedBox(width: 5),
-              Text('online · 💗 Romantic',
-                  style: TextStyle(fontSize: 12,
-                      color: Colors.white.withOpacity(0.4),
-                      fontFamily: 'Cormorant')),
-            ]),
-            const SizedBox(height: 5),
-            Text('"thinking of you while the rain falls 🌧️"',
-                style: GoogleFonts.cormorantGaramond(
-                    fontSize: 13, color: Colors.white38,
-                    fontStyle: FontStyle.italic)),
-          ],
-        )),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Ariana',
+                  style: GoogleFonts.cormorantGaramond(
+                      fontSize: 20, fontWeight: FontWeight.w500,
+                      color: Colors.white)),
+              const SizedBox(height: 3),
+              Row(children: [
+                Container(
+                    width: 6, height: 6,
+                    decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(0xFF34D399))),
+                const SizedBox(width: 5),
+                Text('online · 💗 Romantic',
+                    style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.white.withOpacity(0.4),
+                        fontFamily: 'Cormorant')),
+              ]),
+              const SizedBox(height: 5),
+              Text('"thinking of you while the rain falls 🌧️"',
+                  style: GoogleFonts.cormorantGaramond(
+                      fontSize: 13, color: Colors.white38,
+                      fontStyle: FontStyle.italic)),
+            ],
+          ),
+        ),
       ]),
     );
   }
 }
+
+// ── Feature Grid ──────────────────────────────────────────────
 
 class _FeatureGrid extends StatelessWidget {
   const _FeatureGrid({required this.onNavigate});
@@ -375,6 +403,8 @@ class _FeatureGrid extends StatelessWidget {
   }
 }
 
+// ── Emotion Row ───────────────────────────────────────────────
+
 class _EmotionRow extends StatefulWidget {
   @override
   State<_EmotionRow> createState() => _EmotionRowState();
@@ -419,8 +449,11 @@ class _EmotionRowState extends State<_EmotionRow> {
             ),
             child: Text(
               active ? '${b.$1} Sent!' : '${b.$1} ${b.$2}',
-              style: TextStyle(fontSize: 13,
-                  color: active ? const Color(0xFFC084FC) : Colors.white54),
+              style: TextStyle(
+                  fontSize: 13,
+                  color: active
+                      ? const Color(0xFFC084FC)
+                      : Colors.white54),
             ),
           ),
         );
@@ -428,6 +461,8 @@ class _EmotionRowState extends State<_EmotionRow> {
     );
   }
 }
+
+// ── Bottom Nav ────────────────────────────────────────────────
 
 class _BottomNav extends StatelessWidget {
   const _BottomNav({required this.index, required this.onTap});
@@ -449,7 +484,8 @@ class _BottomNav extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.06),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: Colors.white.withOpacity(0.12), width: 0.5),
+        border: Border.all(
+            color: Colors.white.withOpacity(0.12), width: 0.5),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -460,7 +496,8 @@ class _BottomNav extends StatelessWidget {
             onTap: () => onTap(i),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 250),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
                 color: active
@@ -472,7 +509,8 @@ class _BottomNav extends StatelessWidget {
                 children: [
                   Icon(active ? item.$1 : item.$2,
                       color: active
-                          ? const Color(0xFFC084FC) : Colors.white30,
+                          ? const Color(0xFFC084FC)
+                          : Colors.white30,
                       size: 20),
                   const SizedBox(height: 2),
                   Text(item.$3,
@@ -480,7 +518,8 @@ class _BottomNav extends StatelessWidget {
                           fontFamily: 'Cinzel', fontSize: 8,
                           letterSpacing: 0.5,
                           color: active
-                              ? const Color(0xFFC084FC) : Colors.white30)),
+                              ? const Color(0xFFC084FC)
+                              : Colors.white30)),
                 ],
               ),
             ),
