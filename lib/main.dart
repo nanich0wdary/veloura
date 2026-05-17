@@ -4,9 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'features/splash/screens/splash_screen.dart';
 import 'features/chat/screens/chat_screen.dart';
 import 'features/mood/screens/mood_screen.dart';
 import 'features/memories/screens/memories_screen.dart';
+import 'features/pairing/screens/pairing_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,7 +38,30 @@ class VelouraApp extends ConsumerWidget {
           secondary: Color(0xFFF472B6),
         ),
       ),
-      home: const HomeScreen(),
+      home: const SplashEntry(),
+    );
+  }
+}
+
+// ── Splash entry — shows splash then transitions to home ─────
+
+class SplashEntry extends StatefulWidget {
+  const SplashEntry({super.key});
+
+  @override
+  State<SplashEntry> createState() => _SplashEntryState();
+}
+
+class _SplashEntryState extends State<SplashEntry> {
+  bool _showHome = false;
+
+  @override
+  Widget build(BuildContext context) {
+    if (_showHome) {
+      return const HomeScreen();
+    }
+    return SplashScreen(
+      onComplete: () => setState(() => _showHome = true),
     );
   }
 }
@@ -102,35 +127,31 @@ class _HomeScreenState extends State<HomeScreen>
               children: [
                 const SizedBox(height: 20),
 
-                // ── Header ──
+                // Header
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text('VELOURA',
                         style: GoogleFonts.cinzel(
-                          fontSize: 14,
-                          color: const Color(0xFFC084FC),
-                          letterSpacing: 4,
-                        )),
+                            fontSize: 14,
+                            color: const Color(0xFFC084FC),
+                            letterSpacing: 4)),
                     _ConnectedPill(),
                   ],
                 ),
 
                 const SizedBox(height: 28),
 
-                // ── Aura ring ──
+                // Aura ring
                 _AuraRing(controller: _aura)
                     .animate()
                     .fadeIn(duration: 800.ms)
-                    .scale(
-                      begin: const Offset(0.7, 0.7),
-                      duration: 1000.ms,
-                      curve: Curves.elasticOut,
-                    ),
+                    .scale(begin: const Offset(0.7, 0.7),
+                        duration: 1000.ms, curve: Curves.elasticOut),
 
                 const SizedBox(height: 22),
 
-                // ── Partner card ──
+                // Partner card
                 _PartnerCard()
                     .animate()
                     .fadeIn(delay: 200.ms, duration: 600.ms)
@@ -138,7 +159,7 @@ class _HomeScreenState extends State<HomeScreen>
 
                 const SizedBox(height: 16),
 
-                // ── Feature grid ──
+                // Feature grid
                 _FeatureGrid(onNavigate: _push)
                     .animate()
                     .fadeIn(delay: 350.ms, duration: 600.ms)
@@ -146,7 +167,7 @@ class _HomeScreenState extends State<HomeScreen>
 
                 const SizedBox(height: 16),
 
-                // ── Emotion row ──
+                // Emotion row
                 _EmotionRow()
                     .animate()
                     .fadeIn(delay: 500.ms, duration: 600.ms),
@@ -170,8 +191,6 @@ class _HomeScreenState extends State<HomeScreen>
   }
 }
 
-// ── Connected Pill ───────────────────────────────────────────
-
 class _ConnectedPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -182,25 +201,18 @@ class _ConnectedPill extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.white.withOpacity(0.1), width: 0.5),
       ),
-      child: Row(
-        children: [
-          Container(
-            width: 6, height: 6,
+      child: Row(children: [
+        Container(width: 6, height: 6,
             decoration: const BoxDecoration(
-              shape: BoxShape.circle, color: Color(0xFF34D399),
-            ),
-          ),
-          const SizedBox(width: 5),
-          Text('connected',
-              style: GoogleFonts.cinzel(
-                  fontSize: 9, color: Colors.white38, letterSpacing: 1)),
-        ],
-      ),
+                shape: BoxShape.circle, color: Color(0xFF34D399))),
+        const SizedBox(width: 5),
+        Text('connected',
+            style: GoogleFonts.cinzel(
+                fontSize: 9, color: Colors.white38, letterSpacing: 1)),
+      ]),
     );
   }
 }
-
-// ── Aura Ring ────────────────────────────────────────────────
 
 class _AuraRing extends StatelessWidget {
   const _AuraRing({required this.controller});
@@ -219,8 +231,7 @@ class _AuraRing extends StatelessWidget {
             boxShadow: [
               BoxShadow(
                 color: const Color(0xFFC084FC).withOpacity(0.2 + glow * 0.3),
-                blurRadius: 30 + glow * 20,
-                spreadRadius: 2 + glow * 4,
+                blurRadius: 30 + glow * 20, spreadRadius: 2 + glow * 4,
               ),
             ],
           ),
@@ -235,8 +246,7 @@ class _AuraRing extends StatelessWidget {
             padding: const EdgeInsets.all(2.5),
             child: Container(
               decoration: const BoxDecoration(
-                shape: BoxShape.circle, color: Color(0xFF0F172A),
-              ),
+                  shape: BoxShape.circle, color: Color(0xFF0F172A)),
               child: const Center(
                 child: Icon(Icons.favorite_rounded,
                     color: Colors.white, size: 34),
@@ -249,8 +259,6 @@ class _AuraRing extends StatelessWidget {
   }
 }
 
-// ── Partner Card ─────────────────────────────────────────────
-
 class _PartnerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -261,74 +269,56 @@ class _PartnerCard extends StatelessWidget {
         color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: Colors.white.withOpacity(0.1), width: 0.5),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFC084FC).withOpacity(0.07),
-            blurRadius: 20,
-          ),
-        ],
+        boxShadow: [BoxShadow(
+            color: const Color(0xFFC084FC).withOpacity(0.07), blurRadius: 20)],
       ),
-      child: Row(
-        children: [
-          Container(
-            width: 52, height: 52,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: const LinearGradient(
-                  colors: [Color(0xFFC084FC), Color(0xFFF472B6)]),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFC084FC).withOpacity(0.35),
-                  blurRadius: 12,
-                ),
-              ],
-            ),
-            child: const Center(
-              child: Text('A',
-                  style: TextStyle(
-                      fontFamily: 'Cinzel', fontSize: 20, color: Colors.white)),
-            ),
+      child: Row(children: [
+        Container(
+          width: 52, height: 52,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: const LinearGradient(
+                colors: [Color(0xFFC084FC), Color(0xFFF472B6)]),
+            boxShadow: [BoxShadow(
+                color: const Color(0xFFC084FC).withOpacity(0.35),
+                blurRadius: 12)],
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Ariana',
-                    style: GoogleFonts.cormorantGaramond(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white)),
-                const SizedBox(height: 3),
-                Row(children: [
-                  Container(
-                    width: 6, height: 6,
-                    decoration: const BoxDecoration(
-                        shape: BoxShape.circle, color: Color(0xFF34D399)),
-                  ),
-                  const SizedBox(width: 5),
-                  Text('online · 💗 Romantic',
-                      style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.white.withOpacity(0.4),
-                          fontFamily: 'Cormorant')),
-                ]),
-                const SizedBox(height: 5),
-                Text('"thinking of you while the rain falls 🌧️"',
-                    style: GoogleFonts.cormorantGaramond(
-                        fontSize: 13,
-                        color: Colors.white38,
-                        fontStyle: FontStyle.italic)),
-              ],
-            ),
+          child: const Center(
+            child: Text('A',
+                style: TextStyle(fontFamily: 'Cinzel',
+                    fontSize: 20, color: Colors.white)),
           ),
-        ],
-      ),
+        ),
+        const SizedBox(width: 14),
+        Expanded(child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Ariana',
+                style: GoogleFonts.cormorantGaramond(
+                    fontSize: 20, fontWeight: FontWeight.w500,
+                    color: Colors.white)),
+            const SizedBox(height: 3),
+            Row(children: [
+              Container(width: 6, height: 6,
+                  decoration: const BoxDecoration(
+                      shape: BoxShape.circle, color: Color(0xFF34D399))),
+              const SizedBox(width: 5),
+              Text('online · 💗 Romantic',
+                  style: TextStyle(fontSize: 12,
+                      color: Colors.white.withOpacity(0.4),
+                      fontFamily: 'Cormorant')),
+            ]),
+            const SizedBox(height: 5),
+            Text('"thinking of you while the rain falls 🌧️"',
+                style: GoogleFonts.cormorantGaramond(
+                    fontSize: 13, color: Colors.white38,
+                    fontStyle: FontStyle.italic)),
+          ],
+        )),
+      ]),
     );
   }
 }
-
-// ── Feature Grid ─────────────────────────────────────────────
 
 class _FeatureGrid extends StatelessWidget {
   const _FeatureGrid({required this.onNavigate});
@@ -346,51 +336,44 @@ class _FeatureGrid extends StatelessWidget {
       (Icons.photo_album_outlined, 'MEMORIES',
           [const Color(0xFFF472B6), const Color(0xFFFBBF24)],
           const MemoriesScreen()),
-      (Icons.shield_outlined, 'SAFE', // placeholder for pairing
+      (Icons.qr_code_rounded, 'PAIRING',
           [const Color(0xFF34D399), const Color(0xFF3B82F6)],
-          const MemoriesScreen()),
+          const PairingScreen()),
     ];
-
     return GridView.count(
       crossAxisCount: 2,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 12,
-      crossAxisSpacing: 12,
+      mainAxisSpacing: 12, crossAxisSpacing: 12,
       childAspectRatio: 2.2,
-      children: features.map((f) {
-        return GestureDetector(
-          onTap: () => onNavigate(f.$4),
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(colors: [
-                f.$3.first.withOpacity(0.15),
-                f.$3.last.withOpacity(0.08),
-              ]),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                  color: f.$3.first.withOpacity(0.25), width: 0.5),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(f.$1, color: f.$3.first, size: 20),
-                const SizedBox(width: 8),
-                Text(f.$2,
-                    style: GoogleFonts.cinzel(
-                        fontSize: 11,
-                        color: Colors.white70,
-                        letterSpacing: 1.5)),
-              ],
-            ),
+      children: features.map((f) => GestureDetector(
+        onTap: () => onNavigate(f.$4),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors: [
+              f.$3.first.withOpacity(0.15),
+              f.$3.last.withOpacity(0.08),
+            ]),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+                color: f.$3.first.withOpacity(0.25), width: 0.5),
           ),
-        );
-      }).toList(),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(f.$1, color: f.$3.first, size: 20),
+              const SizedBox(width: 8),
+              Text(f.$2,
+                  style: GoogleFonts.cinzel(
+                      fontSize: 11, color: Colors.white70,
+                      letterSpacing: 1.5)),
+            ],
+          ),
+        ),
+      )).toList(),
     );
   }
 }
-
-// ── Emotion Row ──────────────────────────────────────────────
 
 class _EmotionRow extends StatefulWidget {
   @override
@@ -436,11 +419,8 @@ class _EmotionRowState extends State<_EmotionRow> {
             ),
             child: Text(
               active ? '${b.$1} Sent!' : '${b.$1} ${b.$2}',
-              style: TextStyle(
-                  fontSize: 13,
-                  color: active
-                      ? const Color(0xFFC084FC)
-                      : Colors.white54),
+              style: TextStyle(fontSize: 13,
+                  color: active ? const Color(0xFFC084FC) : Colors.white54),
             ),
           ),
         );
@@ -448,8 +428,6 @@ class _EmotionRowState extends State<_EmotionRow> {
     );
   }
 }
-
-// ── Bottom Nav ───────────────────────────────────────────────
 
 class _BottomNav extends StatelessWidget {
   const _BottomNav({required this.index, required this.onTap});
@@ -471,8 +449,7 @@ class _BottomNav extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.06),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(
-            color: Colors.white.withOpacity(0.12), width: 0.5),
+        border: Border.all(color: Colors.white.withOpacity(0.12), width: 0.5),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -483,8 +460,7 @@ class _BottomNav extends StatelessWidget {
             onTap: () => onTap(i),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 250),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
                 color: active
@@ -496,18 +472,15 @@ class _BottomNav extends StatelessWidget {
                 children: [
                   Icon(active ? item.$1 : item.$2,
                       color: active
-                          ? const Color(0xFFC084FC)
-                          : Colors.white30,
+                          ? const Color(0xFFC084FC) : Colors.white30,
                       size: 20),
                   const SizedBox(height: 2),
                   Text(item.$3,
                       style: TextStyle(
-                          fontFamily: 'Cinzel',
-                          fontSize: 8,
+                          fontFamily: 'Cinzel', fontSize: 8,
                           letterSpacing: 0.5,
                           color: active
-                              ? const Color(0xFFC084FC)
-                              : Colors.white30)),
+                              ? const Color(0xFFC084FC) : Colors.white30)),
                 ],
               ),
             ),
