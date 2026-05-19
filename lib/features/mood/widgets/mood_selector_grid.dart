@@ -9,17 +9,8 @@ class MoodSelectorGrid extends StatelessWidget {
     required this.onSelect,
   });
 
-  final String selected;
-  final ValueChanged<String> onSelect;
-
-  static const _moods = [
-    ('😊', 'Happy', [Color(0xFFFBBF24), Color(0xFFF97316)]),
-    ('😔', 'Sad', [Color(0xFF60A5FA), Color(0xFF3B82F6)]),
-    ('😴', 'Tired', [Color(0xFFAD7FF2), Color(0xFF7C3AED)]),
-    ('😡', 'Angry', [Color(0xFFEF4444), Color(0xFFFCA5A5)]),
-    ('😌', 'Calm', [Color(0xFF34D399), Color(0xFF10B981)]),
-    ('😍', 'Loved', [Color(0xFFC084FC), Color(0xFFF472B6)]),
-  ];
+  final MoodType selected;
+  final ValueChanged<MoodType> onSelect;
 
   @override
   Widget build(BuildContext context) {
@@ -29,15 +20,15 @@ class MoodSelectorGrid extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       mainAxisSpacing: 12,
       crossAxisSpacing: 12,
-      children: _moods.map((mood) {
-        final isSelected = selected == mood.$1;
+      children: Mood.all.map((mood) {
+        final isSelected = selected == mood.type;
         return GestureDetector(
-          onTap: () => onSelect(mood.$1),
+          onTap: () => onSelect(mood.type),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 250),
             decoration: BoxDecoration(
               gradient: isSelected
-                  ? LinearGradient(colors: mood.$3)
+                  ? LinearGradient(colors: mood.colors)
                   : null,
               color: isSelected
                   ? null
@@ -53,7 +44,7 @@ class MoodSelectorGrid extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(mood.$1, style: const TextStyle(fontSize: 32))
+                Text(mood.emoji, style: const TextStyle(fontSize: 32))
                     .animate()
                     .scale(
                       begin: const Offset(0.8, 0.8),
@@ -61,7 +52,7 @@ class MoodSelectorGrid extends StatelessWidget {
                     ),
                 const SizedBox(height: 6),
                 Text(
-                  mood.$2,
+                  mood.label,
                   style: GoogleFonts.cinzel(
                     fontSize: 10,
                     color: isSelected ? Colors.white : Colors.white54,
